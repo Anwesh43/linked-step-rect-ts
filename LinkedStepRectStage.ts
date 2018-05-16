@@ -133,3 +133,26 @@ class LSRNode {
         this.state.startUpdating(startcb)
     }
 }
+
+class LinkedStepRect {
+
+    curr : LSRNode = new LSRNode(0)
+
+    dir : number = 1
+
+    draw(context) {
+        this.curr.draw(context)
+    }
+
+    update(stopcb) {
+        this.curr.update(() => {
+            this.curr = this.curr.getNext(this.dir, () => {
+                this.dir *= -1
+            })
+        })
+    }
+
+    startUpdating(startcb) {
+        this.curr.startUpdating(startcb)
+    }
+}
