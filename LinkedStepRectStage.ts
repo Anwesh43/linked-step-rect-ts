@@ -1,4 +1,4 @@
-const w : number = window.innerWidth, h : number = window.innerHeight
+const w : number = window.innerWidth, h : number = window.innerHeight, LSR_NODES : number = 5
 class LinkedStepRectStage {
 
     canvas : HTMLCanvasElement = document.createElement('canvas')
@@ -80,5 +80,56 @@ class Animator {
             this.animated = false
             clearInterval(this.interval)
         }
+    }
+}
+
+class LSRNode {
+
+    prev : LSRNode
+
+    next : LSRNode
+
+    state : State = new State()
+
+    constructor(private i : number) {
+        this.addNeighbor()
+    }
+
+    addNeighbor() {
+        if (this.i < LSR_NODES - 1) {
+            this.next = new LSRNode(this.i+1)
+            this.next.prev = this
+        }
+    }
+
+    draw(context : CanvasRenderingContext2D) {
+        const h_gap : number = (h / LSR_NODES), w_gap : number = (w / LSR_NODES), size : number = Math.min(w_gap, h_gap)/5
+        context.save()
+        context.translate(this.i * w_gap + size/2, this.i * h_gap + size/2)
+        context.fillStyle = '#212121'
+        const x : number = (w_gap - size/2) * this.state.scales[1], w_rect : number = (w_gap - size/2) * this.state.scales[0] * (1 -this.state.scales[1])
+        const y : number = (h_gap - size/2) * this.state.scales[3], h_rect : number = (h_gap - size/2) * this.state.scales[2] * (1 -this.state.scales[3])
+        context.fillRect(x, y, w_rect, h_rect)
+        context.restore()
+    }
+
+    getNext(dir, cb) {
+        var curr : LSRNode = this.prev
+        if (dir == 1) {
+            curr = this.next
+        }
+        if (curr) {
+            return curr
+        }
+        cb()
+        return this
+    }
+
+    update(stopcb) {
+        this.state.update(stopcb)
+    }
+
+    startUpdating(startcb) {
+        this.state.startUpdating(startcb)
     }
 }
