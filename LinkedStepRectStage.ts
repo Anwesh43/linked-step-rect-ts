@@ -59,6 +59,7 @@ class State {
 
     update(stopcb : Function) {
         this.scales[this.j] += 0.1 * this.dir
+        console.log(this.scales)
         if (Math.abs(this.scales[this.j] - this.prevScale) > 1) {
             this.scales[this.j] = this.prevScale + this.dir
             this.j += this.dir
@@ -122,17 +123,17 @@ class LSRNode {
     }
 
     draw(context : CanvasRenderingContext2D) {
-        const h_gap : number = (h / LSR_NODES), w_gap : number = (w / LSR_NODES), size : number = Math.min(w_gap, h_gap)/5
+        const h_gap : number = (0.9 * h / LSR_NODES), w_gap : number = ((0.9 * w) / LSR_NODES), size : number = Math.min(w_gap, h_gap)/5
         context.save()
         context.translate(this.i * w_gap + size/2, this.i * h_gap + size/2)
-        context.fillStyle = '#212121'
-        const x : number = (w_gap - size/2) * this.state.scales[1], w_rect : number = (w_gap - size/2) * this.state.scales[0] * (1 -this.state.scales[1])
-        const y : number = (h_gap - size/2) * this.state.scales[3], h_rect : number = (h_gap - size/2) * this.state.scales[2] * (1 -this.state.scales[3])
+        context.fillStyle = '#FF6F00'
+        const x : number = (w_gap + size/2) * this.state.scales[1], w_rect : number = size + (w_gap - size) * this.state.scales[0] * (1 -this.state.scales[1])
+        const y : number = (h_gap + size/2) * this.state.scales[3], h_rect : number = size + (h_gap - size) * this.state.scales[2] * (1 -this.state.scales[3])
         context.fillRect(x, y, w_rect, h_rect)
         context.restore()
     }
 
-    getNext(dir, cb) {
+    getNext(dir : number, cb : Function) {
         var curr : LSRNode = this.prev
         if (dir == 1) {
             curr = this.next
@@ -144,11 +145,11 @@ class LSRNode {
         return this
     }
 
-    update(stopcb) {
+    update(stopcb : Function) {
         this.state.update(stopcb)
     }
 
-    startUpdating(startcb) {
+    startUpdating(startcb : Function) {
         this.state.startUpdating(startcb)
     }
 }
@@ -158,20 +159,23 @@ class LinkedStepRect {
     curr : LSRNode = new LSRNode(0)
 
     dir : number = 1
-
-    draw(context) {
+    constructor() {
+        console.log(this.curr)
+    }
+    draw(context : CanvasRenderingContext2D) {
         this.curr.draw(context)
     }
 
-    update(stopcb) {
+    update(stopcb : Function) {
         this.curr.update(() => {
             this.curr = this.curr.getNext(this.dir, () => {
                 this.dir *= -1
             })
+            stopcb()
         })
     }
 
-    startUpdating(startcb) {
+    startUpdating(startcb : Function) {
         this.curr.startUpdating(startcb)
     }
 }
